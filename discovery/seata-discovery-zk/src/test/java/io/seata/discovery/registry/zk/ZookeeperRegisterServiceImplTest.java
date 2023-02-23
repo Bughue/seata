@@ -18,6 +18,7 @@ package io.seata.discovery.registry.zk;
 import io.seata.common.util.NetUtil;
 import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.ZkClient;
+import org.I0Itec.zkclient.exception.ZkTimeoutException;
 import org.apache.curator.test.TestingServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -58,9 +59,15 @@ public class ZookeeperRegisterServiceImplTest {
     }
 
     @Test
-    public void buildZkTest() {
-        ZkClient client = service.buildZkClient("127.0.0.1:2181", 5000, 5000);
-        Assertions.assertTrue(client.exists("/zookeeper"));
+    public void buildZkTest() throws InterruptedException {
+        try{
+            ZkClient client = service.buildZkClient("127.0.0.1:2181", 5000, 5000);
+            Assertions.assertTrue(client.exists("/zookeeper"));
+        }catch (ZkTimeoutException e){
+            Thread.sleep(1000);
+            ZkClient client = service.buildZkClient("127.0.0.1:2181", 5000, 5000);
+            Assertions.assertTrue(client.exists("/zookeeper"));
+        }
     }
 
     @Test
