@@ -35,6 +35,8 @@ import io.seata.core.protocol.transaction.GlobalRollbackResponse;
 import io.seata.core.protocol.transaction.GlobalStatusRequest;
 import io.seata.core.protocol.transaction.GlobalStatusResponse;
 import io.seata.core.rpc.netty.TmNettyRemotingClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeoutException;
 
@@ -43,6 +45,8 @@ import java.util.concurrent.TimeoutException;
  *
  */
 public class DefaultTransactionManager implements TransactionManager {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTransactionManager.class);
 
     @Override
     public String begin(String applicationId, String transactionServiceGroup, String name, int timeout)
@@ -92,7 +96,11 @@ public class DefaultTransactionManager implements TransactionManager {
 
     private AbstractTransactionResponse syncCall(AbstractTransactionRequest request) throws TransactionException {
         try {
-            return (AbstractTransactionResponse) TmNettyRemotingClient.getInstance().sendSyncRequest(request);
+            AbstractTransactionResponse response = (AbstractTransactionResponse) TmNettyRemotingClient.getInstance().sendSyncRequest(request);
+            if(response.getResultCode() == ResultCode.Failed){
+                LOGGER.error("Failed to handle request: {}", request);
+            }
+            return response;
         } catch (TimeoutException toe) {
             throw new TmTransactionException(TransactionExceptionCode.IO, "RPC timeout", toe);
         }
