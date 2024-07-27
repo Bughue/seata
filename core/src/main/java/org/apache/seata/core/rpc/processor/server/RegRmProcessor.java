@@ -74,6 +74,7 @@ public class RegRmProcessor implements RemotingProcessor {
                 if (LOGGER.isWarnEnabled()) {
                     LOGGER.warn("RM checkAuth for client:{},vgroup:{},applicationId:{} is FAIL", ipAndPort, message.getTransactionServiceGroup(), message.getApplicationId());
                 }
+                errorInfo = "RM checkAuth fail";
             }
         } catch (Exception exx) {
             isSuccess = false;

@@ -77,6 +77,7 @@ public class RegTmProcessor implements RemotingProcessor {
                     LOGGER.warn("TM checkAuth for client:{},vgroup:{},applicationId:{} is FAIL",
                             ipAndPort, message.getTransactionServiceGroup(), message.getApplicationId());
                 }
+                errorInfo = "TM checkAuth fail";
             }
         } catch (Exception exx) {
             isSuccess = false;
