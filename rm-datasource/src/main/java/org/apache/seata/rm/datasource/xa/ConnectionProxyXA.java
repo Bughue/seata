@@ -140,8 +140,12 @@ public class ConnectionProxyXA extends AbstractConnectionProxyXA implements Hold
      * @param applicationData application data
      */
     public synchronized void xaRollback(String xid, long branchId, String applicationData) throws XAException {
-        XAXid xaXid = XAXidBuilder.build(xid, branchId);
-        xaRollback(xaXid);
+        if (this.xaBranchXid != null) {
+            xaRollback(xaBranchXid);
+        } else {
+            XAXid xaXid = XAXidBuilder.build(xid, branchId);
+            xaRollback(xaXid);
+        }
     }
 
     /**
@@ -157,6 +161,11 @@ public class ConnectionProxyXA extends AbstractConnectionProxyXA implements Hold
     @Override
     public void setAutoCommit(boolean autoCommit) throws SQLException {
         if (currentAutoCommitStatus == autoCommit) {
+            return;
+        }
+        if (isReadOnly()) {
+            //If it is a read-only transaction, do nothing
+            currentAutoCommitStatus = autoCommit;
             return;
         }
         if (autoCommit) {
@@ -206,8 +215,8 @@ public class ConnectionProxyXA extends AbstractConnectionProxyXA implements Hold
 
     @Override
     public synchronized void commit() throws SQLException {
-        if (currentAutoCommitStatus) {
-            // Ignore the committing on an autocommit session.
+        if (currentAutoCommitStatus || isReadOnly()) {
+            // Ignore the committing on an autocommit session and read-only transaction.
             return;
         }
         if (!xaActive || this.xaBranchXid == null) {
@@ -226,7 +235,14 @@ public class ConnectionProxyXA extends AbstractConnectionProxyXA implements Hold
             long now = System.currentTimeMillis();
             checkTimeout(now);
             setPrepareTime(now);
-            xaResource.prepare(xaBranchXid);
+            int prepare = xaResource.prepare(xaBranchXid);
+            // Based on the four databases: MySQL (8), Oracle (12c), Postgres (16), and MSSQL Server (2022),
+            // only Oracle has read-only optimization; the others do not provide read-only feedback.
+            // Therefore, the database type check can be eliminated here.
+            if (prepare == XAResource.XA_RDONLY) {
+                // Branch Report to TC: RDONLY
+                reportStatusToTC(BranchStatus.PhaseOne_RDONLY);
+            }
         } catch (XAException xe) {
             // Branch Report to TC: Failed
             reportStatusToTC(BranchStatus.PhaseOne_Failed);
@@ -240,8 +256,8 @@ public class ConnectionProxyXA extends AbstractConnectionProxyXA implements Hold
 
     @Override
     public void rollback() throws SQLException {
-        if (currentAutoCommitStatus) {
-            // Ignore the committing on an autocommit session.
+        if (currentAutoCommitStatus || isReadOnly()) {
+            // Ignore the committing on an autocommit session and read-only transaction.
             return;
         }
         if (!xaActive || this.xaBranchXid == null) {
