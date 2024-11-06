@@ -60,13 +60,11 @@ public class RegTmProcessor implements RemotingProcessor {
     private void onRegTmMessage(ChannelHandlerContext ctx, RpcMessage rpcMessage) {
         RegisterTMRequest message = (RegisterTMRequest) rpcMessage.getBody();
         String ipAndPort = NetUtil.toStringAddress(ctx.channel().remoteAddress());
-        Version.putChannelVersion(ctx.channel(), message.getVersion());
         boolean isSuccess = false;
         String errorInfo = StringUtils.EMPTY;
         try {
             if (null == checkAuthHandler || checkAuthHandler.regTransactionManagerCheckAuth(message)) {
                 ChannelManager.registerTMChannel(message, ctx.channel());
-                Version.putChannelVersion(ctx.channel(), message.getVersion());
                 isSuccess = true;
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("TM checkAuth for client:{},vgroup:{},applicationId:{} is OK",

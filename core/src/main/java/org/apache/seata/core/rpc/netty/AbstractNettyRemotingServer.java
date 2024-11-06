@@ -16,8 +16,6 @@
  */
 package org.apache.seata.core.rpc.netty;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeoutException;
@@ -93,18 +91,6 @@ public abstract class AbstractNettyRemotingServer extends AbstractNettyRemoting 
         if (channel == null) {
             throw new RuntimeException("client is not connected");
         }
-        final List<Class> skipSendClassList = Arrays.asList();
-        RpcContext rpcContext = ChannelManager.getContextFromIdentified(channel);
-        String version = rpcContext.getVersion();
-        String channelVersion = Version.getChannelVersion(channel);
-        // todo 过滤发送，但这个version好像不对？
-        boolean aboveV0 = Version.isAboveOrEqualVersion071(version);
-        for (Class aClass : skipSendClassList) {
-            if (aClass.isAssignableFrom(msg.getClass())&&!aboveV0) {
-                return;
-            }
-        }
-
         RpcMessage rpcMessage = buildRequestMessage(msg, ProtocolConstants.MSGTYPE_RESQUEST_ONEWAY);
         super.sendAsync(channel, rpcMessage);
     }

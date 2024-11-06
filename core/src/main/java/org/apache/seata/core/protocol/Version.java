@@ -45,7 +45,6 @@ public class Version {
     /**
      * The constant VERSION_MAP.
      */
-    public static final Map<String, String> VERSION_MAP = new ConcurrentHashMap<>();
 
     private Version() {
 
@@ -58,26 +57,6 @@ public class Version {
      */
     public static String getCurrent() {
         return CURRENT;
-    }
-
-    /**
-     * Put channel version.
-     *
-     * @param c the c
-     * @param v the v
-     */
-    public static void putChannelVersion(Channel c, String v) {
-        VERSION_MAP.put(NetUtil.toStringAddress(c.remoteAddress()), v);
-    }
-
-    /**
-     * Gets channel version.
-     *
-     * @param c the c
-     * @return the channel version
-     */
-    public static String getChannelVersion(Channel c) {
-        return VERSION_MAP.get(NetUtil.toStringAddress(c.remoteAddress()));
     }
 
     /**
