@@ -17,6 +17,7 @@
 package org.apache.seata.core.rpc;
 
 import io.netty.channel.Channel;
+import org.apache.seata.common.util.StringUtils;
 import org.apache.seata.core.protocol.MessageType;
 import org.apache.seata.core.protocol.MessageTypeAware;
 import org.apache.seata.core.protocol.RpcMessage;
@@ -40,11 +41,14 @@ public class MsgVersionHelper {
         }
         Object msg = rpcMessage.getBody();
         RpcContext rpcContext = ChannelManager.getContextFromIdentified(channel);
-        boolean aboveV0 = Version.isAboveOrEqualVersion071(rpcContext.getVersion());
-        if(msg!=null && !aboveV0 && msg instanceof MessageTypeAware){
-            short typeCode = ((MessageTypeAware) msg).getTypeCode();
-            return SKIP_MSG_CODE_V0.contains(typeCode);
+        if (rpcContext == null || StringUtils.isBlank(rpcContext.getVersion()) || msg == null) {
+            return false;
         }
-        return false;
+        boolean aboveV0 = Version.isAboveOrEqualVersion071(rpcContext.getVersion());
+        if(aboveV0 || !(msg instanceof MessageTypeAware)){
+            return false;
+        }
+        short typeCode = ((MessageTypeAware) msg).getTypeCode();
+        return SKIP_MSG_CODE_V0.contains(typeCode);
     }
 }
