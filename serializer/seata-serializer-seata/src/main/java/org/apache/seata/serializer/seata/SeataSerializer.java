@@ -22,10 +22,14 @@ import org.apache.seata.common.loader.LoadLevel;
 import org.apache.seata.common.loader.Scope;
 import org.apache.seata.common.util.BufferUtils;
 import org.apache.seata.core.protocol.AbstractMessage;
+import org.apache.seata.core.protocol.IncompatibleVersionException;
 import org.apache.seata.core.protocol.ProtocolConstants;
+import org.apache.seata.core.protocol.Version;
 import org.apache.seata.core.serializer.Serializer;
 
 import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The Seata codec.
@@ -34,11 +38,11 @@ import java.nio.ByteBuffer;
 public class SeataSerializer implements Serializer {
     Serializer versionSeataSerializer;
 
-    public SeataSerializer(Byte version) {
-        if (version == ProtocolConstants.VERSION_0) {
+    public SeataSerializer(String version) {
+        if (version == null || Version.isAboveOrEqualVersion071(version)) {
+            versionSeataSerializer = SeataSerializerV1.getInstance(version);
+        } else if (!Version.isAboveOrEqualVersion071(version)) {
             versionSeataSerializer = SeataSerializerV0.getInstance();
-        } else if (version == ProtocolConstants.VERSION_1) {
-            versionSeataSerializer = SeataSerializerV1.getInstance();
         }
         if (versionSeataSerializer == null) {
             throw new UnsupportedOperationException("version is not supported");
@@ -58,20 +62,16 @@ public class SeataSerializer implements Serializer {
 
     static class SeataSerializerV1 implements Serializer {
 
-        private static volatile SeataSerializerV1 instance;
+        private static volatile Map<String, SeataSerializerV1> instanceMap = new ConcurrentHashMap<>();
 
-        private SeataSerializerV1() {
+        private String version;
+
+        private SeataSerializerV1(String version) {
+            this.version = version;
         }
 
-        public static SeataSerializerV1 getInstance() {
-            if (instance == null) {
-                synchronized (SeataSerializerV1.class) {
-                    if (instance == null) {
-                        instance = new SeataSerializerV1();
-                    }
-                }
-            }
-            return instance;
+        public static SeataSerializerV1 getInstance(String version) {
+            return instanceMap.computeIfAbsent(version, SeataSerializerV1::new);
         }
 
         @Override
@@ -87,6 +87,9 @@ public class SeataSerializer implements Serializer {
             //get empty ByteBuffer
             ByteBuf out = Unpooled.buffer(1024);
             //msg encode
+            MessageSeataCodec oldCodec = MultiVersionCodecHelper.match(version, messageCodec);
+            messageCodec = oldCodec!=null? oldCodec : messageCodec;
+
             messageCodec.encode(t, out);
             byte[] body = new byte[out.readableBytes()];
             out.readBytes(body);
@@ -106,12 +109,15 @@ public class SeataSerializer implements Serializer {
 
         @Override
         public <T> T deserialize(byte[] bytes) {
-            return deserializeByVersion(bytes, ProtocolConstants.VERSION_1);
+            return deserializeByVersion(bytes, ProtocolConstants.VERSION_1, version);
         }
     }
+
     static class SeataSerializerV0 implements Serializer {
 
         private static volatile SeataSerializerV0 instance;
+
+        private String version = "0.7.0";
 
         private SeataSerializerV0() {
         }
@@ -137,6 +143,9 @@ public class SeataSerializer implements Serializer {
             short typecode = abstractMessage.getTypeCode();
             //msg codec
             MessageSeataCodec messageCodec = MessageCodecFactory.getMessageCodec(typecode, ProtocolConstants.VERSION_0);
+
+            MessageSeataCodec oldCodec = MultiVersionCodecHelper.match(version, messageCodec);
+            messageCodec = oldCodec!=null? oldCodec : messageCodec;
             //get empty ByteBuffer
             ByteBuf out = Unpooled.buffer(1024);
             //msg encode
@@ -157,12 +166,12 @@ public class SeataSerializer implements Serializer {
 
         @Override
         public <T> T deserialize(byte[] bytes) {
-            return deserializeByVersion(bytes, ProtocolConstants.VERSION_0);
+            return deserializeByVersion(bytes, ProtocolConstants.VERSION_0, version);
         }
 
     }
 
-    private static <T> T deserializeByVersion(byte[] bytes, byte version) {
+    private static <T> T deserializeByVersion(byte[] bytes, byte protocolVersion, String version) {
         if (bytes == null || bytes.length == 0) {
             throw new IllegalArgumentException("Nothing to decode.");
         }
@@ -176,7 +185,10 @@ public class SeataSerializer implements Serializer {
         //new message
         AbstractMessage abstractMessage = MessageCodecFactory.getMessage(typecode);
         //get messageCodec
-        MessageSeataCodec messageCodec = MessageCodecFactory.getMessageCodec(typecode, version);
+        MessageSeataCodec messageCodec = MessageCodecFactory.getMessageCodec(typecode, protocolVersion);
+
+        MessageSeataCodec oldCodec = MultiVersionCodecHelper.match(version, messageCodec);
+        messageCodec = oldCodec != null ? oldCodec : messageCodec;
         //decode
         messageCodec.decode(abstractMessage, in);
         return (T) abstractMessage;

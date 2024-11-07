@@ -36,6 +36,7 @@ public interface ProtocolConstants {
      * Old protocol version
      */
     byte VERSION_0 = 0;
+    String VERSION_0_SDK = "0.7.0";
 
     /**
      * Protocol version

@@ -17,17 +17,73 @@
 package org.apache.seata.serializer.seata.protocol;
 
 
+import io.netty.buffer.ByteBuf;
+import org.apache.seata.core.protocol.AbstractIdentifyResponse;
 import org.apache.seata.core.protocol.RegisterTMResponse;
+import org.apache.seata.serializer.seata.MessageSeataCodec;
+import org.apache.seata.serializer.seata.MultiVersionCodec;
+
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * The type Register tm response codec.
  *
  */
-public class RegisterTMResponseCodec extends AbstractIdentifyResponseCodec {
+public class RegisterTMResponseCodec extends AbstractIdentifyResponseCodec implements MultiVersionCodec {
 
     @Override
     public Class<?> getMessageClassType() {
         return RegisterTMResponse.class;
     }
 
+    @Override
+    public Map<MultiVersionCodec.VersionRange, MessageSeataCodec> oldVersionCodec() {
+        return Collections.singletonMap(
+                // todo  【我的todo】
+                new MultiVersionCodec.VersionRange("2.2.0"),
+                new MessageSeataCodec() {
+                    @Override
+                    public Class<?> getMessageClassType() {
+                        return RegisterTMResponseCodec.this.getMessageClassType();
+                    }
+
+                    @Override
+                    public <T> void encode(T t, ByteBuf out) {
+                        AbstractIdentifyResponse abstractIdentifyResponse = (AbstractIdentifyResponse)t;
+                        boolean identified = abstractIdentifyResponse.isIdentified();
+                        String version = abstractIdentifyResponse.getVersion();
+
+                        out.writeByte(identified ? (byte)1 : (byte)0);
+                        if (version != null) {
+                            byte[] bs = version.getBytes(UTF8);
+                            out.writeShort((short)bs.length);
+                            if (bs.length > 0) {
+                                out.writeBytes(bs);
+                            }
+                        } else {
+                            out.writeShort((short)0);
+                        }
+                    }
+
+                    @Override
+                    public <T> void decode(T t, ByteBuffer in) {
+                        AbstractIdentifyResponse abstractIdentifyResponse = (AbstractIdentifyResponse)t;
+
+                        abstractIdentifyResponse.setIdentified(in.get() == 1);
+                        short len = in.getShort();
+                        if (len <= 0) {
+                            return;
+                        }
+                        if (in.remaining() < len) {
+                            return;
+                        }
+                        byte[] bs = new byte[len];
+                        in.get(bs);
+                        abstractIdentifyResponse.setVersion(new String(bs, UTF8));
+                    }
+                }
+        );
+    }
 }

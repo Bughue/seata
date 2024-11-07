@@ -22,6 +22,8 @@ import org.apache.seata.common.ConfigurationTestHelper;
 import org.apache.seata.common.XID;
 import org.apache.seata.common.util.NetUtil;
 import org.apache.seata.core.model.GlobalStatus;
+import org.apache.seata.core.protocol.RegisterTMRequest;
+import org.apache.seata.core.protocol.RegisterTMResponse;
 import org.apache.seata.core.protocol.transaction.GlobalCommitRequest;
 import org.apache.seata.core.protocol.transaction.GlobalCommitResponse;
 import org.apache.seata.saga.engine.db.AbstractServerTest;
@@ -189,4 +191,47 @@ public class TmNettyClientTest extends AbstractServerTest {
         nettyRemotingServer.destroy();
         tmNettyRemotingClient.destroy();
     }
+
+    @Test
+    public void testRegisterTMCodec() throws Exception {
+        ThreadPoolExecutor workingThreads = initMessageExecutor();
+        NettyRemotingServer nettyRemotingServer = new NettyRemotingServer(workingThreads);
+        new Thread(() -> {
+            SessionHolder.init(null);
+            nettyRemotingServer.setHandler(DefaultCoordinator.getInstance(nettyRemotingServer));
+            // set registry
+            XID.setIpAddress(NetUtil.getLocalIp());
+            XID.setPort(8091);
+            // init snowflake for transactionId, branchId
+            UUIDGenerator.init(1L);
+            nettyRemotingServer.init();
+        }).start();
+        Thread.sleep(3000);
+
+        String applicationId = "app 1";
+        String transactionServiceGroup = "default_tx_group";
+        TmNettyRemotingClient tmNettyRemotingClient = TmNettyRemotingClient.getInstance(applicationId, transactionServiceGroup);
+        tmNettyRemotingClient.init();
+
+        String serverAddress = "0.0.0.0:8091";
+        Channel channel = TmNettyRemotingClient.getInstance().getClientChannelManager().acquireChannel(serverAddress);
+        Assertions.assertNotNull(channel);
+
+        // test 旧
+        RegisterTMRequest request = new RegisterTMRequest(applicationId, transactionServiceGroup);
+        request.setVersion("");
+        RegisterTMResponse response = (RegisterTMResponse)tmNettyRemotingClient.sendSyncRequest(request);
+
+
+
+
+//        Assertions.assertNotNull(globalCommitResponse);
+//        Assertions.assertEquals(GlobalStatus.Finished, globalCommitResponse.getGlobalStatus());
+
+
+
+        nettyRemotingServer.destroy();
+        tmNettyRemotingClient.destroy();
+    }
+
 }

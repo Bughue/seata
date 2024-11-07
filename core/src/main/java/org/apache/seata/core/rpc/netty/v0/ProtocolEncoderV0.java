@@ -82,7 +82,7 @@ public class ProtocolEncoderV0 extends MessageToByteEncoder implements ProtocolE
             }
 
             byte[] bodyBytes = null;
-            Serializer serializer = SerializerServiceLoader.load(SerializerType.getByCode(codec), ProtocolConstants.VERSION_0);
+            Serializer serializer = SerializerServiceLoader.load(SerializerType.getByCode(codec), ProtocolConstants.VERSION_0_SDK);
             bodyBytes = serializer.serialize(msg.getBody());
 
             if (msg.isSeataCodec()) {

@@ -66,7 +66,7 @@ public final class SerializerServiceLoader {
      * @return the service of {@link Serializer}
      * @throws EnhancedServiceNotFoundException the enhanced service not found exception
      */
-    public static Serializer load(SerializerType type, byte version) throws EnhancedServiceNotFoundException {
+    public static Serializer load(SerializerType type, String version) throws EnhancedServiceNotFoundException {
         // The following code is only used to kindly prompt users to add missing dependencies.
         if (type == SerializerType.PROTOBUF && !CONTAINS_PROTOBUF_DEPENDENCY) {
             throw new EnhancedServiceNotFoundException("The class '" + PROTOBUF_SERIALIZER_CLASS_NAME + "' not found. " +
@@ -109,7 +109,7 @@ public final class SerializerServiceLoader {
         return serializer;
     }
 
-    private static String serializerKey(SerializerType type, byte version) {
+    private static String serializerKey(SerializerType type, String version) {
         if (type == SerializerType.SEATA) {
             return type.name() + version;
         }
