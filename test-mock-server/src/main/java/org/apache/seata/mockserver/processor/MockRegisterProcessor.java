@@ -54,6 +54,7 @@ public class MockRegisterProcessor implements RemotingProcessor {
             LOGGER.info("message = " + message);
 
             ChannelManager.registerTMChannel(message, ctx.channel());
+            Version.putChannelVersion(ctx.channel(), message.getVersion());
 
             RegisterTMResponse resp = new RegisterTMResponse();
             remotingServer.sendAsyncResponse(rpcMessage, ctx.channel(), resp);
@@ -63,6 +64,7 @@ public class MockRegisterProcessor implements RemotingProcessor {
             LOGGER.info("message = " + message);
 
             ChannelManager.registerRMChannel(message, ctx.channel());
+            Version.putChannelVersion(ctx.channel(), message.getVersion());
 
             RegisterRMResponse resp = new RegisterRMResponse();
             remotingServer.sendAsyncResponse(rpcMessage, ctx.channel(), resp);

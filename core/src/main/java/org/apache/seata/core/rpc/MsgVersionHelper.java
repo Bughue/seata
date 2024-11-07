@@ -36,15 +36,15 @@ public class MsgVersionHelper {
     private static final List<Short> SKIP_MSG_CODE_V0 = Arrays.asList(MessageType.TYPE_RM_DELETE_UNDOLOG);
 
     public static boolean versionNotSupport(Channel channel, RpcMessage rpcMessage){
-        if(rpcMessage==null || rpcMessage.getBody() == null){
+        if(rpcMessage==null || rpcMessage.getBody() == null || channel == null){
             return false;
         }
         Object msg = rpcMessage.getBody();
-        RpcContext rpcContext = ChannelManager.getContextFromIdentified(channel);
-        if (rpcContext == null || StringUtils.isBlank(rpcContext.getVersion()) || msg == null) {
+        String version = Version.getChannelVersion(channel);
+        if (StringUtils.isBlank(version) || msg == null) {
             return false;
         }
-        boolean aboveV0 = Version.isAboveOrEqualVersion071(rpcContext.getVersion());
+        boolean aboveV0 = Version.isAboveOrEqualVersion071(version);
         if(aboveV0 || !(msg instanceof MessageTypeAware)){
             return false;
         }
