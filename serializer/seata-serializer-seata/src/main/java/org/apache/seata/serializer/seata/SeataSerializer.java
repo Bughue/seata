@@ -21,6 +21,7 @@ import io.netty.buffer.Unpooled;
 import org.apache.seata.common.loader.LoadLevel;
 import org.apache.seata.common.loader.Scope;
 import org.apache.seata.common.util.BufferUtils;
+import org.apache.seata.common.util.StringUtils;
 import org.apache.seata.core.protocol.AbstractMessage;
 import org.apache.seata.core.protocol.IncompatibleVersionException;
 import org.apache.seata.core.protocol.ProtocolConstants;
@@ -39,7 +40,7 @@ public class SeataSerializer implements Serializer {
     Serializer versionSeataSerializer;
 
     public SeataSerializer(String version) {
-        if (version == null || Version.isAboveOrEqualVersion071(version)) {
+        if (StringUtils.isBlank(version) || Version.isAboveOrEqualVersion071(version)) {
             versionSeataSerializer = SeataSerializerV1.getInstance(version);
         } else if (!Version.isAboveOrEqualVersion071(version)) {
             versionSeataSerializer = SeataSerializerV0.getInstance();

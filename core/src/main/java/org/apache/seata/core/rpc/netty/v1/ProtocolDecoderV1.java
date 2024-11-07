@@ -22,12 +22,16 @@ import java.util.Map;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import org.apache.seata.common.util.StringUtils;
 import org.apache.seata.core.compressor.Compressor;
 import org.apache.seata.core.compressor.CompressorFactory;
 import org.apache.seata.core.exception.DecodeException;
 import org.apache.seata.core.protocol.HeartbeatMessage;
 import org.apache.seata.core.protocol.ProtocolConstants;
 import org.apache.seata.core.protocol.RpcMessage;
+import org.apache.seata.core.protocol.Version;
+import org.apache.seata.core.rpc.RpcContext;
+import org.apache.seata.core.rpc.netty.ChannelManager;
 import org.apache.seata.core.rpc.netty.ProtocolDecoder;
 import org.apache.seata.core.serializer.Serializer;
 import org.apache.seata.core.serializer.SerializerServiceLoader;
@@ -86,6 +90,10 @@ public class ProtocolDecoderV1 extends LengthFieldBasedFrameDecoder implements P
 
     @Override
     public RpcMessage decodeFrame(ByteBuf frame) {
+        return decodeFrame(null, frame);
+    }
+
+    public RpcMessage decodeFrame(ChannelHandlerContext ctx, ByteBuf frame) {
         byte b0 = frame.readByte();
         byte b1 = frame.readByte();
         if (ProtocolConstants.MAGIC_CODE_BYTES[0] != b0
@@ -129,7 +137,12 @@ public class ProtocolDecoderV1 extends LengthFieldBasedFrameDecoder implements P
                 bs = compressor.decompress(bs);
                 SerializerType protocolType = SerializerType.getByCode(rpcMessage.getCodec());
                 if (this.supportDeSerializerTypes.contains(protocolType)) {
-                    Serializer serializer = SerializerServiceLoader.load(protocolType, ProtocolConstants.VERSION_1);
+                    String sdkVersion = "";
+                    if(ctx != null && ctx.channel() != null){
+                        sdkVersion = Version.getChannelVersion(ctx.channel());
+                        sdkVersion = StringUtils.isBlank(sdkVersion) ? "" : sdkVersion;
+                    }
+                    Serializer serializer = SerializerServiceLoader.load(protocolType, sdkVersion);
                     rpcMessage.setBody(serializer.deserialize(bs));
                 } else {
                     throw new IllegalArgumentException("SerializerType not match");
@@ -148,7 +161,7 @@ public class ProtocolDecoderV1 extends LengthFieldBasedFrameDecoder implements P
             if (decoded instanceof ByteBuf) {
                 ByteBuf frame = (ByteBuf)decoded;
                 try {
-                    return decodeFrame(frame);
+                    return decodeFrame(ctx, frame);
                 } finally {
                     frame.release();
                 }
