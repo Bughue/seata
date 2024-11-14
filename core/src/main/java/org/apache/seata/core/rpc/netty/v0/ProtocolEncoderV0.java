@@ -21,8 +21,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import org.apache.seata.core.protocol.HeartbeatMessage;
 import org.apache.seata.core.protocol.MessageTypeAware;
-import org.apache.seata.core.protocol.ProtocolConstants;
 import org.apache.seata.core.protocol.RpcMessage;
+import org.apache.seata.core.protocol.Version;
 import org.apache.seata.core.rpc.netty.ProtocolEncoder;
 import org.apache.seata.core.serializer.Serializer;
 import org.apache.seata.core.serializer.SerializerServiceLoader;
@@ -82,7 +82,7 @@ public class ProtocolEncoderV0 extends MessageToByteEncoder implements ProtocolE
             }
 
             byte[] bodyBytes = null;
-            Serializer serializer = SerializerServiceLoader.load(SerializerType.getByCode(codec), ProtocolConstants.VERSION_0_SDK);
+            Serializer serializer = SerializerServiceLoader.load(SerializerType.getByCode(codec), Version.VERSION_0_7_0);
             bodyBytes = serializer.serialize(msg.getBody());
 
             if (msg.isSeataCodec()) {
