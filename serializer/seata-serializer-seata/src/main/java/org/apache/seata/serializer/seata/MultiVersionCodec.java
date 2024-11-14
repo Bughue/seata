@@ -11,8 +11,8 @@ public interface MultiVersionCodec {
      * version range (begin, end]
      */
     class VersionRange {
-        String begin;
-        String end;
+        private String begin;
+        private String end;
 
         public VersionRange(String begin, String end) {
             this.begin = begin;
@@ -22,6 +22,14 @@ public interface MultiVersionCodec {
         public VersionRange(String end) {
             this.begin = "0";
             this.end = end;
+        }
+
+        public String getBegin() {
+            return begin;
+        }
+
+        public String getEnd() {
+            return end;
         }
     }
 }

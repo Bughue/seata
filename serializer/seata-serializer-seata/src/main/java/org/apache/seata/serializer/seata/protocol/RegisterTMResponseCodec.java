@@ -42,7 +42,7 @@ public class RegisterTMResponseCodec extends AbstractIdentifyResponseCodec imple
     public Map<MultiVersionCodec.VersionRange, MessageSeataCodec> oldVersionCodec() {
         return Collections.singletonMap(
                 // todo  【我的todo】
-                new MultiVersionCodec.VersionRange("2.2.0"),
+                new MultiVersionCodec.VersionRange("2.1.0"),
                 new MessageSeataCodec() {
                     @Override
                     public Class<?> getMessageClassType() {

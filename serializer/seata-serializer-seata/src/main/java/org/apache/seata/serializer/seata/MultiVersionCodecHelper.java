@@ -2,16 +2,18 @@ package org.apache.seata.serializer.seata;
 
 import org.apache.seata.core.protocol.IncompatibleVersionException;
 import org.apache.seata.core.protocol.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
 /**
  * the type MultiVersionCodecHelper
  *
- * @author minghua.xie
- * @date 2024/11/6
  **/
 public class MultiVersionCodecHelper {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MultiVersionCodecHelper.class);
 
     public static MessageSeataCodec match(String v, MessageSeataCodec messageCodec) {
         try {
@@ -21,13 +23,13 @@ public class MultiVersionCodecHelper {
             Map<MultiVersionCodec.VersionRange, MessageSeataCodec> map = ((MultiVersionCodec) messageCodec).oldVersionCodec();
             long version = Version.convertVersion(v);
             for (MultiVersionCodec.VersionRange range : map.keySet()) {
-                if (version > Version.convertVersion(range.begin) &&
-                        version <= Version.convertVersion(range.end)) {
+                if (version > Version.convertVersion(range.getBegin()) &&
+                        version <= Version.convertVersion(range.getEnd())) {
                     return map.get(version);
                 }
             }
         } catch (IncompatibleVersionException e) {
-            // todo 【我的todo】
+            LOGGER.error("match version error", e);
         }
         return null;
     }
