@@ -22,21 +22,19 @@ import org.apache.seata.core.protocol.MessageType;
 import org.apache.seata.core.protocol.MessageTypeAware;
 import org.apache.seata.core.protocol.RpcMessage;
 import org.apache.seata.core.protocol.Version;
-import org.apache.seata.core.rpc.netty.ChannelManager;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
  * the type ServerSkipMsgHelper
- *
  **/
 public class MsgVersionHelper {
 
     private static final List<Short> SKIP_MSG_CODE_V0 = Arrays.asList(MessageType.TYPE_RM_DELETE_UNDOLOG);
 
-    public static boolean versionNotSupport(Channel channel, RpcMessage rpcMessage){
-        if(rpcMessage==null || rpcMessage.getBody() == null || channel == null){
+    public static boolean versionNotSupport(Channel channel, RpcMessage rpcMessage) {
+        if (rpcMessage == null || rpcMessage.getBody() == null || channel == null) {
             return false;
         }
         Object msg = rpcMessage.getBody();
@@ -45,7 +43,7 @@ public class MsgVersionHelper {
             return false;
         }
         boolean aboveV0 = Version.isAboveOrEqualVersion071(version);
-        if(aboveV0 || !(msg instanceof MessageTypeAware)){
+        if (aboveV0 || !(msg instanceof MessageTypeAware)) {
             return false;
         }
         short typeCode = ((MessageTypeAware) msg).getTypeCode();
