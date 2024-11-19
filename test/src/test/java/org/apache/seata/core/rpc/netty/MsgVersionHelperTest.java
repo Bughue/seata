@@ -25,6 +25,7 @@ import org.apache.seata.common.util.UUIDGenerator;
 import org.apache.seata.core.protocol.ProtocolConstants;
 import org.apache.seata.core.protocol.RpcMessage;
 import org.apache.seata.core.protocol.Version;
+import org.apache.seata.core.protocol.VersionNotSupportMessage;
 import org.apache.seata.core.protocol.transaction.UndoLogDeleteRequest;
 import org.apache.seata.core.rpc.MsgVersionHelper;
 import org.apache.seata.server.coordinator.DefaultCoordinator;
@@ -83,9 +84,16 @@ public class MsgVersionHelperTest {
         String serverAddress = "0.0.0.0:8091";
         Channel channel = TmNettyRemotingClient.getInstance().getClientChannelManager().acquireChannel(serverAddress);
 
-        Assertions.assertFalse(MsgVersionHelper.versionNotSupport(channel, buildUndoLogDeleteMsg(ProtocolConstants.MSGTYPE_RESQUEST_ONEWAY)));
+        RpcMessage rpcMessage = buildUndoLogDeleteMsg(ProtocolConstants.MSGTYPE_RESQUEST_ONEWAY);
+        Assertions.assertFalse(MsgVersionHelper.versionNotSupport(channel, rpcMessage));
+        TmNettyRemotingClient.getInstance().sendAsync(channel,rpcMessage);
+
+
         Version.putChannelVersion(channel,"0.7.0");
-        Assertions.assertTrue(MsgVersionHelper.versionNotSupport(channel, buildUndoLogDeleteMsg(ProtocolConstants.MSGTYPE_RESQUEST_ONEWAY)));
+        Assertions.assertTrue(MsgVersionHelper.versionNotSupport(channel, rpcMessage));
+        TmNettyRemotingClient.getInstance().sendAsync(channel,rpcMessage);
+        Object response = TmNettyRemotingClient.getInstance().sendSync(channel, rpcMessage, 100);
+        Assertions.assertTrue(response instanceof VersionNotSupportMessage);
 
         nettyRemotingServer.destroy();
         tmNettyRemotingClient.destroy();
