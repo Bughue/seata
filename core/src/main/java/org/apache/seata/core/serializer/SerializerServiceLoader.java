@@ -24,9 +24,11 @@ import java.util.stream.Collectors;
 import org.apache.seata.common.loader.EnhancedServiceLoader;
 import org.apache.seata.common.loader.EnhancedServiceNotFoundException;
 import org.apache.seata.common.util.ReflectionUtil;
+import org.apache.seata.common.util.StringUtils;
 import org.apache.seata.config.Configuration;
 import org.apache.seata.config.ConfigurationFactory;
 import org.apache.seata.core.constants.ConfigurationKeys;
+import org.apache.seata.core.protocol.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +74,7 @@ public final class SerializerServiceLoader {
             throw new EnhancedServiceNotFoundException("The class '" + PROTOBUF_SERIALIZER_CLASS_NAME + "' not found. " +
                     "Please manually reference 'org.apache.seata:seata-serializer-protobuf' dependency.");
         }
-
+        version = StringUtils.isBlank(version) ? Version.getCurrent() : version;
         String key = serializerKey(type, version);
         Serializer serializer = SERIALIZER_MAP.get(key);
         if (serializer == null) {
