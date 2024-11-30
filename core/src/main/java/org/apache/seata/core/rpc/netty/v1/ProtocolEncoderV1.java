@@ -19,10 +19,6 @@ package org.apache.seata.core.rpc.netty.v1;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
-import org.apache.seata.common.util.StringUtils;
-import org.apache.seata.core.protocol.Version;
-import org.apache.seata.core.rpc.RpcContext;
-import org.apache.seata.core.rpc.netty.ChannelManager;
 import org.apache.seata.core.rpc.netty.ProtocolEncoder;
 import org.apache.seata.core.serializer.Serializer;
 import org.apache.seata.core.compressor.Compressor;
@@ -68,12 +64,7 @@ public class ProtocolEncoderV1 extends MessageToByteEncoder implements ProtocolE
     private static final Logger LOGGER = LoggerFactory.getLogger(ProtocolEncoderV1.class);
 
 
-    @Override
     public void encode(RpcMessage message, ByteBuf out) {
-        doEncode(null, message, out);
-    }
-
-    public void doEncode(ChannelHandlerContext ctx, RpcMessage message, ByteBuf out) {
         try {
             ProtocolRpcMessageV1 rpcMessage = new ProtocolRpcMessageV1();
             rpcMessage.rpcMsg2ProtocolMsg(message);
@@ -83,7 +74,7 @@ public class ProtocolEncoderV1 extends MessageToByteEncoder implements ProtocolE
 
             byte messageType = rpcMessage.getMessageType();
             out.writeBytes(ProtocolConstants.MAGIC_CODE_BYTES);
-            out.writeByte(ProtocolConstants.VERSION_1);
+            out.writeByte(protocolVersion());
             // full Length(4B) and head length(2B) will fix in the end.
             out.writerIndex(out.writerIndex() + 6);
             out.writeByte(messageType);
@@ -103,12 +94,7 @@ public class ProtocolEncoderV1 extends MessageToByteEncoder implements ProtocolE
             if (messageType != ProtocolConstants.MSGTYPE_HEARTBEAT_REQUEST
                 && messageType != ProtocolConstants.MSGTYPE_HEARTBEAT_RESPONSE) {
                 // heartbeat has no body
-                String sdkVersion = "";
-                if(ctx != null && ctx.channel() != null){
-                    sdkVersion = Version.getChannelVersion(ctx.channel());
-                    sdkVersion = StringUtils.isBlank(sdkVersion) ? "" : sdkVersion;
-                }
-                Serializer serializer = SerializerServiceLoader.load(SerializerType.getByCode(rpcMessage.getCodec()), sdkVersion);
+                Serializer serializer = SerializerServiceLoader.load(SerializerType.getByCode(rpcMessage.getCodec()), protocolVersion());
                 bodyBytes = serializer.serialize(rpcMessage.getBody());
                 Compressor compressor = CompressorFactory.getCompressor(rpcMessage.getCompressor());
                 bodyBytes = compressor.compress(bodyBytes);
@@ -139,7 +125,7 @@ public class ProtocolEncoderV1 extends MessageToByteEncoder implements ProtocolE
     protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
         try {
             if (msg instanceof RpcMessage) {
-                this.doEncode(ctx, (RpcMessage)msg, out);
+                this.encode((RpcMessage)msg, out);
             } else {
                 throw new UnsupportedOperationException("Not support this class:" + msg.getClass());
             }
@@ -148,4 +134,8 @@ public class ProtocolEncoderV1 extends MessageToByteEncoder implements ProtocolE
         }
     }
 
+    @Override
+    public byte protocolVersion(){
+        return ProtocolConstants.VERSION_1;
+    }
 }

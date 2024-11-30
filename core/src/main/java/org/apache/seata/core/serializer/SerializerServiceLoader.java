@@ -24,11 +24,9 @@ import java.util.stream.Collectors;
 import org.apache.seata.common.loader.EnhancedServiceLoader;
 import org.apache.seata.common.loader.EnhancedServiceNotFoundException;
 import org.apache.seata.common.util.ReflectionUtil;
-import org.apache.seata.common.util.StringUtils;
 import org.apache.seata.config.Configuration;
 import org.apache.seata.config.ConfigurationFactory;
 import org.apache.seata.core.constants.ConfigurationKeys;
-import org.apache.seata.core.protocol.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,13 +66,13 @@ public final class SerializerServiceLoader {
      * @return the service of {@link Serializer}
      * @throws EnhancedServiceNotFoundException the enhanced service not found exception
      */
-    public static Serializer load(SerializerType type, String version) throws EnhancedServiceNotFoundException {
+    public static Serializer load(SerializerType type, byte version) throws EnhancedServiceNotFoundException {
         // The following code is only used to kindly prompt users to add missing dependencies.
         if (type == SerializerType.PROTOBUF && !CONTAINS_PROTOBUF_DEPENDENCY) {
             throw new EnhancedServiceNotFoundException("The class '" + PROTOBUF_SERIALIZER_CLASS_NAME + "' not found. " +
                     "Please manually reference 'org.apache.seata:seata-serializer-protobuf' dependency.");
         }
-        version = StringUtils.isBlank(version) ? Version.getCurrent() : version;
+
         String key = serializerKey(type, version);
         Serializer serializer = SERIALIZER_MAP.get(key);
         if (serializer == null) {
@@ -111,7 +109,7 @@ public final class SerializerServiceLoader {
         return serializer;
     }
 
-    private static String serializerKey(SerializerType type, String version) {
+    private static String serializerKey(SerializerType type, byte version) {
         if (type == SerializerType.SEATA) {
             return type.name() + version;
         }

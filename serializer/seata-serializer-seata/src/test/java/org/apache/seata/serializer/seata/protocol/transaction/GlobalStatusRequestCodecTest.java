@@ -16,7 +16,7 @@
  */
 package org.apache.seata.serializer.seata.protocol.transaction;
 
-import org.apache.seata.core.protocol.Version;
+import org.apache.seata.core.protocol.ProtocolConstants;
 import org.apache.seata.serializer.seata.SeataSerializer;
 import org.apache.seata.core.protocol.transaction.GlobalStatusRequest;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,7 @@ public class GlobalStatusRequestCodecTest {
     /**
      * The Seata codec.
      */
-    SeataSerializer seataSerializer = new SeataSerializer(Version.getCurrent());
+    SeataSerializer seataSerializer = new SeataSerializer(ProtocolConstants.VERSION);
 
     /**
      * Test codec.

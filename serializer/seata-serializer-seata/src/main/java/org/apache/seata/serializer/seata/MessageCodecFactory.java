@@ -19,6 +19,7 @@ package org.apache.seata.serializer.seata;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import org.apache.seata.core.protocol.ProtocolConstants;
 import org.apache.seata.serializer.seata.protocol.BatchResultMessageCodec;
 import org.apache.seata.serializer.seata.protocol.MergeResultMessageCodec;
 import org.apache.seata.serializer.seata.protocol.MergedWarpMessageCodec;
@@ -77,6 +78,8 @@ import org.apache.seata.core.protocol.transaction.GlobalRollbackResponse;
 import org.apache.seata.core.protocol.transaction.GlobalStatusRequest;
 import org.apache.seata.core.protocol.transaction.GlobalStatusResponse;
 import org.apache.seata.core.protocol.transaction.UndoLogDeleteRequest;
+import org.apache.seata.serializer.seata.protocol.v2.RegisterRMResponseCodecV2;
+import org.apache.seata.serializer.seata.protocol.v2.RegisterTMResponseCodecV2;
 
 /**
  * The type Message codec factory.
@@ -117,13 +120,21 @@ public class MessageCodecFactory {
                 msgCodec = new RegisterTMRequestCodec();
                 break;
             case MessageType.TYPE_REG_CLT_RESULT:
-                msgCodec = new RegisterTMResponseCodec();
+                if (version == ProtocolConstants.VERSION_2) {
+                    msgCodec = new RegisterTMResponseCodecV2();
+                } else {
+                    msgCodec = new RegisterTMResponseCodec();
+                }
                 break;
             case MessageType.TYPE_REG_RM:
                 msgCodec = new RegisterRMRequestCodec();
                 break;
             case MessageType.TYPE_REG_RM_RESULT:
-                msgCodec = new RegisterRMResponseCodec();
+                if (version == ProtocolConstants.VERSION_2) {
+                    msgCodec = new RegisterRMResponseCodecV2();
+                } else {
+                    msgCodec = new RegisterRMResponseCodec();
+                }
                 break;
             case MessageType.TYPE_BRANCH_COMMIT:
                 msgCodec = new BranchCommitRequestCodec();

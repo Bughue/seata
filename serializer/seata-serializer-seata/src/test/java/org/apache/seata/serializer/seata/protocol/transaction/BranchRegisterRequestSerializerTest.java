@@ -16,7 +16,7 @@
  */
 package org.apache.seata.serializer.seata.protocol.transaction;
 
-import org.apache.seata.core.protocol.Version;
+import org.apache.seata.core.protocol.ProtocolConstants;
 import org.apache.seata.serializer.seata.SeataSerializer;
 import org.apache.seata.core.model.BranchType;
 import org.apache.seata.core.protocol.transaction.BranchRegisterRequest;
@@ -33,7 +33,7 @@ public class BranchRegisterRequestSerializerTest {
     /**
      * The Seata codec.
      */
-    SeataSerializer seataSerializer = new SeataSerializer(Version.getCurrent());
+    SeataSerializer seataSerializer = new SeataSerializer(ProtocolConstants.VERSION);
 
     /**
      * Test codec.
