@@ -3,10 +3,7 @@ package org.apache.seata.serializer.seata.serializer;
 import org.apache.seata.core.protocol.ProtocolConstants;
 
 /**
- * ?
- *
- * @author minghua.xie
- * @date 2024/11/26
+ * the type SeataSerializer(V2)
  **/
 public class SeataSerializerV2 extends SeataSerializerV1{
     private static volatile SeataSerializerV2 instance;
