@@ -75,7 +75,7 @@ public class TCCRocketMQImpl implements TCCRocketMQ {
         Message message = context.getActionContext(ROCKET_MSG_KEY, Message.class);
         SendResult sendResult = context.getActionContext(ROCKET_SEND_RESULT_KEY, SendResult.class);
         if (checkMqStatus(message, sendResult)) {
-            throw new TransactionException("TCCRocketMQ commit but cannot find message and sendResult");
+            throw new TransactionException("TCCRocketMQ commit but cannot find message or sendResult");
         }
         this.producerImpl.endTransaction(message, sendResult, LocalTransactionState.COMMIT_MESSAGE, null);
         LOGGER.info("RocketMQ message send commit, xid = {}, branchId = {}", context.getXid(), context.getBranchId());
@@ -88,7 +88,7 @@ public class TCCRocketMQImpl implements TCCRocketMQ {
         Message message = context.getActionContext(ROCKET_MSG_KEY, Message.class);
         SendResult sendResult = context.getActionContext(ROCKET_SEND_RESULT_KEY, SendResult.class);
         if (checkMqStatus(message, sendResult)) {
-            LOGGER.error("TCCRocketMQ rollback but cannot find message and sendResult");
+            LOGGER.error("TCCRocketMQ rollback but cannot find message or sendResult");
             return true;
         }
         this.producerImpl.endTransaction(message, sendResult, LocalTransactionState.ROLLBACK_MESSAGE, null);
