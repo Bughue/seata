@@ -60,7 +60,7 @@ public interface TCCRocketMQ {
      * @throws InterruptedException
      */
     boolean commit(BusinessActionContext context)
-            throws UnknownHostException, MQBrokerException, RemotingException, InterruptedException, TransactionException, TimeoutException;
+            throws UnknownHostException, MQBrokerException, RemotingException, InterruptedException, TransactionException;
 
     /**
      * RocketMQ half send rollback
