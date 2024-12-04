@@ -94,7 +94,7 @@ public class TCCRocketMQImplTest {
             when(businessActionContext.getXid()).thenReturn(xid);
             when(businessActionContext.getBranchId()).thenReturn(branchId);
 
-            SendResult mockSendResult = mockSendResult();
+            SendResult mockSendResult = mockSendResultWithId();
             when(mockSendResult.getSendStatus()).thenReturn(SendStatus.SEND_OK);
             when(producer.doSendMessageInTransaction(message, timeout, xid, branchId)).thenReturn(mockSendResult);
 
@@ -144,7 +144,7 @@ public class TCCRocketMQImplTest {
         TransactionException {
 
         Message message = new Message(TEST_TOPIC, "testBody".getBytes());
-        SendResult sendResult = mockSendResult();
+        SendResult sendResult = mockSendResultWithId();
 
         when(businessActionContext.getActionContext("ROCKET_MSG", Message.class)).thenReturn(message);
         when(businessActionContext.getActionContext("ROCKET_SEND_RESULT", SendResult.class)).thenReturn(sendResult);
@@ -158,7 +158,7 @@ public class TCCRocketMQImplTest {
             isNull());
     }
 
-    private static SendResult mockSendResult() {
+    private static SendResult mockSendResultWithId() {
         SendResult mock = mock(SendResult.class);
         when(mock.getMsgId()).thenReturn("testMsgId");
         when(mock.getOffsetMsgId()).thenReturn("testOffsetMsgId");
@@ -170,7 +170,7 @@ public class TCCRocketMQImplTest {
 
         when(businessActionContext.getActionContext("ROCKET_MSG", Message.class)).thenReturn(null);
         when(businessActionContext.getActionContext("ROCKET_SEND_RESULT", SendResult.class)).thenReturn(
-                mockSendResult());
+                mockSendResultWithId());
 
         assertThrows(TransactionException.class, () -> tccRocketMQ.commit(businessActionContext));
     }
@@ -189,7 +189,7 @@ public class TCCRocketMQImplTest {
         throws UnknownHostException, MQBrokerException, RemotingException, InterruptedException, TimeoutException {
 
         Message message = new Message(TEST_TOPIC, "testBody".getBytes());
-        SendResult sendResult = mockSendResult();
+        SendResult sendResult = mockSendResultWithId();
 
         when(businessActionContext.getActionContext("ROCKET_MSG", Message.class)).thenReturn(message);
         when(businessActionContext.getActionContext("ROCKET_SEND_RESULT", SendResult.class)).thenReturn(sendResult);
@@ -205,7 +205,7 @@ public class TCCRocketMQImplTest {
         throws UnknownHostException, MQBrokerException, RemotingException, InterruptedException, TransactionException {
 
         Message message = new Message(TEST_TOPIC, "testBody".getBytes());
-        SendResult sendResult = mockSendResult();
+        SendResult sendResult = mockSendResultWithId();
 
         when(businessActionContext.getActionContext("ROCKET_MSG", Message.class)).thenReturn(message);
         when(businessActionContext.getActionContext("ROCKET_SEND_RESULT", SendResult.class)).thenReturn(sendResult);
@@ -223,7 +223,7 @@ public class TCCRocketMQImplTest {
     void testRollbackWithNullMessage()
         throws UnknownHostException, MQBrokerException, RemotingException, InterruptedException, TransactionException {
 
-        SendResult sendResult = mockSendResult();
+        SendResult sendResult = mockSendResultWithId();
 
         when(businessActionContext.getActionContext("ROCKET_MSG", Message.class)).thenReturn(null);
         when(businessActionContext.getActionContext("ROCKET_SEND_RESULT", SendResult.class)).thenReturn(sendResult);
@@ -260,7 +260,7 @@ public class TCCRocketMQImplTest {
         throws UnknownHostException, MQBrokerException, RemotingException, InterruptedException {
 
         Message message = new Message(TEST_TOPIC, "testBody".getBytes());
-        SendResult sendResult = mockSendResult();
+        SendResult sendResult = mockSendResultWithId();
 
         when(businessActionContext.getActionContext("ROCKET_MSG", Message.class)).thenReturn(message);
         when(businessActionContext.getActionContext("ROCKET_SEND_RESULT", SendResult.class)).thenReturn(sendResult);
