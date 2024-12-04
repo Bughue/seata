@@ -160,7 +160,8 @@ public class TCCRocketMQImplTest {
 
     private static SendResult mockSendResult() {
         SendResult mock = mock(SendResult.class);
-        mock.setMsgId("testMsgId");
+        when(mock.getMsgId()).thenReturn("testMsgId");
+        when(mock.getOffsetMsgId()).thenReturn("testOffsetMsgId");
         return mock;
     }
 
