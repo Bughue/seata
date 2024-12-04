@@ -96,6 +96,7 @@ public class TCCRocketMQImpl implements TCCRocketMQ {
     }
 
     private static boolean checkMqStatus(Message message, SendResult sendResult) {
+        LOGGER.info("checkMqStatus message = {}, sendResult = {}", message, sendResult);
         return message == null || sendResult == null ||
                 (StringUtils.isBlank(sendResult.getOffsetMsgId()) && StringUtils.isBlank(sendResult.getMsgId()));
     }
