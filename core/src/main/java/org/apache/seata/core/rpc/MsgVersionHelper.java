@@ -42,8 +42,8 @@ public class MsgVersionHelper {
         if (StringUtils.isBlank(version) || msg == null) {
             return false;
         }
-        boolean aboveV0 = Version.isV0(version);
-        if (!aboveV0 || !(msg instanceof MessageTypeAware)) {
+        boolean isV0 = Version.isV0(version);
+        if (!isV0 || !(msg instanceof MessageTypeAware)) {
             return false;
         }
         short typeCode = ((MessageTypeAware) msg).getTypeCode();
