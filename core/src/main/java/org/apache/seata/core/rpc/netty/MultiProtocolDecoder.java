@@ -27,6 +27,8 @@ import org.apache.seata.core.rpc.netty.v0.ProtocolDecoderV0;
 import org.apache.seata.core.rpc.netty.v0.ProtocolEncoderV0;
 import org.apache.seata.core.rpc.netty.v1.ProtocolDecoderV1;
 import org.apache.seata.core.rpc.netty.v1.ProtocolEncoderV1;
+import org.apache.seata.core.rpc.netty.v2.ProtocolDecoderV2;
+import org.apache.seata.core.rpc.netty.v2.ProtocolEncoderV2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,12 +85,16 @@ public class MultiProtocolDecoder extends LengthFieldBasedFrameDecoder {
         int initialBytesToStrip we will check magic code and version self, so do not strip any bytes. so values is 0
         */
         super(maxFrameLength, 3, 4, -7, 0);
-        this.protocolDecoderMap =
-            ImmutableMap.<Byte, ProtocolDecoder>builder().put(ProtocolConstants.VERSION_0, new ProtocolDecoderV0())
-                .put(ProtocolConstants.VERSION_1, new ProtocolDecoderV1()).build();
-        this.protocolEncoderMap =
-            ImmutableMap.<Byte, ProtocolEncoder>builder().put(ProtocolConstants.VERSION_0, new ProtocolEncoderV0())
-                .put(ProtocolConstants.VERSION_1, new ProtocolEncoderV1()).build();
+        this.protocolDecoderMap = ImmutableMap.<Byte, ProtocolDecoder>builder()
+                .put(ProtocolConstants.VERSION_0, new ProtocolDecoderV0())
+                .put(ProtocolConstants.VERSION_1, new ProtocolDecoderV1())
+                .put(ProtocolConstants.VERSION_2, new ProtocolDecoderV2())
+                .build();
+        this.protocolEncoderMap =ImmutableMap.<Byte, ProtocolEncoder>builder()
+                .put(ProtocolConstants.VERSION_0, new ProtocolEncoderV0())
+                .put(ProtocolConstants.VERSION_1, new ProtocolEncoderV1())
+                .put(ProtocolConstants.VERSION_2, new ProtocolEncoderV2())
+                .build();
         this.channelHandlers = channelHandlers;
     }
 
