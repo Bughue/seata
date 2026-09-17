@@ -784,7 +784,7 @@ MIT licenses
     asynckit 0.4.0 MIT see:licenses/asynckit-MIT
     axios 1.12.2 MIT see:licenses/axios-MIT
     babel-plugin-emotion 10.2.2 MIT see:licenses/babel-plugin-emotion-MIT
-    babel-plugin-emotion/node_modules/babel-plugin-macros 2.8.0 MIT see:licenses/babel-plugin-emotion-MIT
+    babel-plugin-emotion/node_modules/babel-plugin-macros 2.8.0 MIT see:licenses/babel-plugin-macros-MIT
     babel-plugin-emotion/node_modules/convert-source-map 1.9.0 MIT see:licenses/convert-source-map-MIT
     babel-plugin-emotion/node_modules/cosmiconfig 6.0.0 MIT see:licenses/cosmiconfig-MIT
     babel-plugin-styled-components 2.1.4 MIT see:licenses/babel-plugin-styled-components-MIT
