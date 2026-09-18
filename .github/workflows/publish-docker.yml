@@ -16,21 +16,15 @@
 #
 name: "Publish Docker Image"
 
-# Version branches (2.7.0, 2.6.0, ...) must not publish official tags or
-# retarget latest on every push. That published unreleased 2.7.0 before
-# the vote. Snapshot images stay on snapshot/2.x (+ the daily schedule).
-# Official tags are workflow_dispatch only, after the release vote passes.
+# Voting stays on x.x.x (e.g. 2.7.0). That branch must not publish official
+# tags or retarget latest — that is how unreleased 2.7.0 hit Docker Hub.
+# Snapshot images stay on snapshot / 2.x (+ the daily schedule).
+# After the vote passes, push x.x.x-release (e.g. 2.7.0-release) to publish.
 on:
   push:
-    branches: [ snapshot, 2.x ]
+    branches: [ snapshot, 2.x, "*.*.*-release" ]
   schedule:
     - cron: '0 16 * * *' #GMT+0
-  workflow_dispatch:
-    inputs:
-      publish_release:
-        description: 'Publish official version tags and latest. Use only after the release vote passes.'
-        type: boolean
-        default: false
 
 jobs:
   # job 1
@@ -56,36 +50,36 @@ jobs:
         run: ./mvnw -version
       # step 4 snapshot/dev java8 (never release-image)
       - name: "Publish snapshot images to DockerHub based on java8"
-        if: ${{ matrix.java == 8 && (github.event_name != 'workflow_dispatch' || inputs.publish_release == false) }}
+        if: ${{ matrix.java == 8 && (github.ref_name == 'snapshot' || github.ref_name == '2.x' || github.event_name == 'schedule') }}
         env:
           REGISTRY_USERNAME: ${{ secrets.DOCKERHUB_USER }}
           REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
           ./mvnw -T 4C clean package -Dimage.name=eclipse-temurin:8u422-b05-jdk -Pimage -DskipTests -e -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-      # official tags: only workflow_dispatch with publish_release=true after the vote
+      # official tags: only x.x.x-release after the vote
       - name: "Publish official images to DockerHub based on java8"
-        if: ${{ matrix.java == 8 && github.event_name == 'workflow_dispatch' && inputs.publish_release }}
+        if: ${{ matrix.java == 8 && endsWith(github.ref_name, '-release') }}
         env:
           REGISTRY_USERNAME: ${{ secrets.DOCKERHUB_USER }}
           REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
           ./mvnw -T 4C clean package -Dimage.name=eclipse-temurin:8u422-b05-jdk -Pimage,release-image-based-on-java8 -DskipTests -e -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
       - name: "Publish official images to DockerHub based on java17"
-        if: ${{ matrix.java == 17 && github.event_name == 'workflow_dispatch' && inputs.publish_release }}
+        if: ${{ matrix.java == 17 && endsWith(github.ref_name, '-release') }}
         env:
           REGISTRY_USERNAME: ${{ secrets.DOCKERHUB_USER }}
           REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
           ./mvnw -T 4C clean package -Dimage.name=eclipse-temurin:17.0.12_7-jdk -Pimage,release-image-based-on-java17 -DskipTests -e -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
       - name: "Publish official images to DockerHub based on java21"
-        if: ${{ matrix.java == 21 && github.event_name == 'workflow_dispatch' && inputs.publish_release }}
+        if: ${{ matrix.java == 21 && endsWith(github.ref_name, '-release') }}
         env:
           REGISTRY_USERNAME: ${{ secrets.DOCKERHUB_USER }}
           REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
           ./mvnw -T 4C clean package -Dimage.name=eclipse-temurin:21.0.4_7-jdk -Pimage,release-image-based-on-java21 -DskipTests -e -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
       - name: "Publish official images to DockerHub based on java25"
-        if: ${{ matrix.java == 25 && github.event_name == 'workflow_dispatch' && inputs.publish_release }}
+        if: ${{ matrix.java == 25 && endsWith(github.ref_name, '-release') }}
         env:
           REGISTRY_USERNAME: ${{ secrets.DOCKERHUB_USER }}
           REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
