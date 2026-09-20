@@ -42,6 +42,7 @@ header:
     - '**/org/apache/seata/sqlparser/antlr/**/*.g4'
     - 'console/src/main/resources/static/console-fe/public/css/bootstrap.css'
     - 'console/src/main/resources/static/console-fe/public/css/font-awesome.css'
+    - 'saga/seata-saga-statemachine-designer/src/render/PathMap.js'
     - 'distribution/licenses/**'
     - 'distribution/LICENSE'
     - 'distribution/LICENSE-*'
